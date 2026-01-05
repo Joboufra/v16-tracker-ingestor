@@ -1,0 +1,48 @@
+name: Deploy V16 Ingestor
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: v16-ingestor-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, v16-ingestor]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Llevar código al directorio de deploy
+        run: |
+          DEPLOY_ROOT=/home/joboufra/actions/actions-v16-ingestor/deploy
+          mkdir -p "$DEPLOY_ROOT"
+          rsync -a --delete \
+            --exclude .git \
+            --exclude .github \
+            --exclude .venv \
+            "$GITHUB_WORKSPACE/" "$DEPLOY_ROOT/"
+
+      - name: Instalar dependencias
+        run: |
+          cd /home/joboufra/actions/actions-v16-ingestor/deploy/ingestor
+          python3 -m venv .venv
+          ./.venv/bin/pip install -r requirements.txt
+
+      - name: Escribir .env
+        run: |
+          cd /home/joboufra/actions/actions-v16-ingestor/deploy/ingestor
+          umask 077
+          cat <<'EOF' > .env
+          ${{ secrets.INGESTOR_ENV }}
+          EOF
+
+      - name: Reiniciar servicio
+        run: |
+          sudo systemctl daemon-reload
+          sudo systemctl restart v16-ingestor
+
+      - name: Limpiar workspace
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"*
