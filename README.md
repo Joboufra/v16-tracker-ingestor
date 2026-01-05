@@ -2,6 +2,8 @@
 
 Servicio de ingesta y normalización de eventos V16 desde eTraffic DGT. El poller consulta periódicamente el endpoint público de eTraffic, filtra los eventos V16 y los mantiene en memoria; opcionalmente los persiste en Elasticsearch. El API expone la caché para consumo interno.
 
+Actualmente este proceso sirve como fuente de datos para los dashboards de mi Kibana: [Ver dashboard](https://kibana.joboufra.es/s/demo/app/dashboards#/view/50fede58-fc2b-4119-a2ee-e7e46cb2f2c7?_g=(filters:!(),refreshInterval:(pause:!t,value:60000),time:(from:'2025-12-31T23:00:00.000Z',to:'2026-12-31T22:59:59.000Z')))
+
 ## Cómo funciona
 - **Poller**: consulta eTraffic cada `POLL_INTERVAL_SECONDS` con backoff exponencial y jitter. Se puede desactivar (`POLLING_ENABLED=false`).
 - **Normalización**: filtra por `fuente=DGT3.0`, `tipo=Advertencia`, `causa=Vehículo detenido`. Calcula IDs estables, marca como `lost` los eventos sin refresco tras `STALE_AFTER_SECONDS` y purga antiguos con `LOST_GC_SECONDS`.
