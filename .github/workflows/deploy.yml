@@ -26,13 +26,13 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          cd /home/joboufra/actions/actions-v16-ingestor/deploy/ingestor
+          cd /home/joboufra/actions/actions-v16-ingestor/deploy
           python3 -m venv .venv
           ./.venv/bin/pip install -r requirements.txt
 
       - name: Escribir .env
         run: |
-          cd /home/joboufra/actions/actions-v16-ingestor/deploy/ingestor
+          cd /home/joboufra/actions/actions-v16-ingestor/deploy
           umask 077
           cat <<'EOF' > .env
           ${{ secrets.INGESTOR_ENV }}
