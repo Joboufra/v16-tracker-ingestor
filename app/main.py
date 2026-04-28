@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from slowapi.middleware import SlowAPIMiddleware
 
 from .core.config import settings
+from .core.logging import configure_logging, shutdown_logging
 from .core.security import require_api_key, log_requests_middleware
 from .api.routes import router as api_router, register_exception_handlers
 from .elastic import (
@@ -25,8 +26,7 @@ from .models import EventStatus, V16Event
 from .docs import APP_DESCRIPTION, register_docs_routes
 
 logger = logging.getLogger("v16-backend")
-LOG_LEVEL = getattr(logging, settings.log_level.upper(), logging.INFO)
-logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
+configure_logging(settings)
 
 
 @asynccontextmanager
@@ -51,11 +51,12 @@ async def lifespan(app: FastAPI):
                 await task
         await app.state.etraffic.close()
         await close_elasticsearch_client(app.state.es_client)
+        shutdown_logging()
 
 
 app = FastAPI(
     title="V16 Tracker",
-    version="0.1.0",
+    version="1.0.0",
     description=APP_DESCRIPTION,
     docs_url=None,
     redoc_url=None,

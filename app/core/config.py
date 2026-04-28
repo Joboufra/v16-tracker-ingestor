@@ -23,13 +23,11 @@ def _parse_list(value: Optional[str], default: List[str]) -> List[str]:
 class Settings:
     etraffic_endpoint: str = os.getenv(
         "ETRAFFIC_ENDPOINT",
-        # Endpoint JSON observado en la SPA de eTraffic (llamada XHR).
         "https://etraffic.dgt.es/etrafficWEB/api/cache/getFilteredData",
     )
     etraffic_method: str = os.getenv("ETRAFFIC_METHOD", "POST")
     etraffic_payload: str = os.getenv(
         "ETRAFFIC_PAYLOAD",
-        # Payload observado en la SPA para getFilteredData; se puede ajustar si cambia.
         '{"filtrosVia":["Carreteras cortadas","Tráfico lento","Circulación restringida",'
         '"Desvíos y embolsamientos","Otras vialidades"],'
         '"filtrosCausa":["Obras","Accidente","Meteorológicos","Restricciones de circulación","Otras incidencias","Otras afecciones"]}',
@@ -46,6 +44,7 @@ class Settings:
     rate_limit_storage_uri: Optional[str] = os.getenv("RATE_LIMIT_STORAGE_URI")
     elasticsearch_url: str = os.getenv("ELASTICSEARCH_URL", "")
     elasticsearch_index: str = os.getenv("ELASTICSEARCH_INDEX", "v16-events")
+    elasticsearch_logs_index: str = os.getenv("ELASTICSEARCH_LOGS_INDEX", "logs-apps")
     elasticsearch_username: Optional[str] = os.getenv("ELASTICSEARCH_USERNAME")
     elasticsearch_password: Optional[str] = os.getenv("ELASTICSEARCH_PASSWORD")
     elasticsearch_api_key: Optional[str] = os.getenv("ELASTICSEARCH_API_KEY")
@@ -74,6 +73,7 @@ class Settings:
         default_factory=lambda: _parse_list(os.getenv("ETRAFFIC_ALLOWED_HOSTS"), ["etraffic.dgt.es"])
     )
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    app_name: str = os.getenv("APP_NAME", "V16 Tracker")
 
     def payload_json(self) -> dict:
         try:

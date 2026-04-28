@@ -3,6 +3,7 @@ import binascii
 import hashlib
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
@@ -67,6 +68,16 @@ def _parse_etraffic_payload(response: httpx.Response, xor_key: str) -> Optional[
             return json.loads(text)
         except json.JSONDecodeError:
             logger.warning("Respuesta no JSON (content-type=%s)", content_type)
+            try:
+                base_dir = os.path.dirname(os.path.dirname(__file__))
+                utils_dir = os.path.join(base_dir, "utils")
+                os.makedirs(utils_dir, exist_ok=True)
+                out_path = os.path.join(utils_dir, "etraffic_raw_response.txt")
+                with open(out_path, "w", encoding="utf-8", errors="replace") as f:
+                    f.write(text)
+                logger.info("Respuesta guardada en %s", out_path)
+            except Exception as exc:
+                logger.error("No se pudo guardar respuesta de Etraffic: %s", exc)
     return None
 
 
@@ -184,6 +195,16 @@ class EtrafficService:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.client: Optional[httpx.AsyncClient] = None
+        try:
+            key = self.settings.etraffic_xor_key or ""
+            key_byte = key.encode("utf-8")[0] if key else None
+            logger.info(
+                "ETRAFFIC XOR key configurada: '%s' (byte=%s)",
+                key if key else "<vacia>",
+                key_byte if key_byte is not None else "<none>",
+            )
+        except Exception as exc:
+            logger.warning("No se pudo loguear la clave XOR configurada: %s", exc)
 
     async def get_client(self) -> httpx.AsyncClient:
         if self.client is None:
